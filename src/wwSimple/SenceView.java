@@ -1,6 +1,7 @@
 package wwSimple;
 
 import gov.nasa.worldwind.BasicFactory;
+import gov.nasa.worldwind.Factory;
 import gov.nasa.worldwind.WorldWind;
 import gov.nasa.worldwind.avlist.AVKey;
 import gov.nasa.worldwind.avlist.AVList;
@@ -8,11 +9,25 @@ import gov.nasa.worldwind.avlist.AVListImpl;
 import gov.nasa.worldwind.cache.FileStore;
 import gov.nasa.worldwind.data.TiledElevationProducer;
 import gov.nasa.worldwind.data.TiledImageProducer;
+import gov.nasa.worldwind.geom.Angle;
+import gov.nasa.worldwind.geom.Position;
 import gov.nasa.worldwind.geom.Sector;
 import gov.nasa.worldwind.globes.ElevationModel;
+import gov.nasa.worldwind.layers.CompassLayer;
 import gov.nasa.worldwind.layers.Layer;
+import gov.nasa.worldwind.layers.LayerList;
+import gov.nasa.worldwind.layers.RenderableLayer;
+import gov.nasa.worldwind.ogc.wms.WMSCapabilities;
+import gov.nasa.worldwind.render.BasicShapeAttributes;
+import gov.nasa.worldwind.render.Material;
+import gov.nasa.worldwind.render.ShapeAttributes;
+import gov.nasa.worldwind.render.Wedge;
+import gov.nasa.worldwind.render.markers.BasicMarkerAttributes;
+import gov.nasa.worldwind.render.markers.BasicMarkerShape;
+import gov.nasa.worldwind.render.markers.MarkerAttributes;
 import gov.nasa.worldwind.terrain.CompoundElevationModel;
 import gov.nasa.worldwind.util.WWIO;
+import gov.nasa.worldwind.wms.WMSTiledImageLayer;
 import gov.nasa.worldwindx.examples.ApplicationTemplate;
 import gov.nasa.worldwindx.examples.dataimport.DataInstallUtil;
 import gov.nasa.worldwindx.examples.dataimport.InstallElevations;
@@ -29,6 +44,9 @@ import java.awt.event.WindowEvent;
 import java.awt.event.WindowListener;
 import java.awt.event.WindowStateListener;
 import java.io.File;
+import java.net.URI;
+import java.net.URISyntaxException;
+import java.util.Set;
 
 import javax.swing.JButton;
 import javax.swing.JFrame;
@@ -59,51 +77,67 @@ public class SenceView extends ApplicationTemplate{
             Thread t = new Thread(new Runnable() {
                 public void run() {
                 	//影像
-                	installImagery();
+                	//installImagery();
                 	//地形
-                    installElevations();
+                    //installElevations();
                     //加载完毕，恢复状态
                     setCursor(Cursor.getDefaultCursor());
                 }
             });
             t.start();
             
-            //屏幕默认最大化
-			this.setExtendedState(JFrame.MAXIMIZED_BOTH);
-            //屏幕大小
-            Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
-			Dimension frameSize = new Dimension(screenSize.width,screenSize.height);
-			//地图视图大小
-			((Component)getWwd()).setPreferredSize(frameSize);
-			
-			//面板
-            JPanel paneMap = new JPanel();
-            paneMap.setBounds(0, 0, (int)frameSize.getWidth(),(int)frameSize.getHeight());
-			//paneMap.setBounds(0, 0, this.getWidth(),this.getHeight());
-			paneMap.add((Component)getWwd(),BorderLayout.CENTER);
-			//控件
-			JPanel pan = new JPanel();
-			pan.setBounds(20, 200, 200, 400);
-			JLabel label1 = new JLabel("参数1：");
-			JTextField textField1 = new JTextField(16);
-			JLabel label2 = new JLabel("参数2：");
-			JTextField textField2 = new JTextField(16);
-			JLabel label3 = new JLabel("参数3：");
-			JTextField textField3 = new JTextField(16);
-			JButton button = new JButton("确定");
-			pan.add(label1);
-			pan.add(textField1);
-			pan.add(label2);
-			pan.add(textField2);
-			pan.add(label3);
-			pan.add(textField3);
-			pan.add(button);
-
-			JLayeredPane layeredPane = new JLayeredPane();
-			layeredPane.add(pan,100);
-			layeredPane.add(paneMap,10);
-			
-			this.setContentPane(layeredPane);
+            //体图层
+            RenderableLayer layer = new RenderableLayer();
+            int compassPosition = 0;
+            LayerList layers = getWwd().getModel().getLayers();
+            for (Layer l : layers)
+            {
+                if (l instanceof CompassLayer)
+                    compassPosition = layers.indexOf(l);
+            }
+            layers.add(compassPosition, layer);
+            //添加体
+            AddWedge(layer);
+            
+            //新增WMS图层
+            AddWMSLayreNew();
+            
+//            //屏幕默认最大化
+//			this.setExtendedState(JFrame.MAXIMIZED_BOTH);
+//            //屏幕大小
+//            Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
+//			Dimension frameSize = new Dimension(screenSize.width,screenSize.height);
+//			//地图视图大小
+//			((Component)getWwd()).setPreferredSize(frameSize);
+//			
+//			//面板
+//            JPanel paneMap = new JPanel();
+//            paneMap.setBounds(0, 0, (int)frameSize.getWidth(),(int)frameSize.getHeight());
+//			//paneMap.setBounds(0, 0, this.getWidth(),this.getHeight());
+//			paneMap.add((Component)getWwd(),BorderLayout.CENTER);
+//			//控件
+//			JPanel pan = new JPanel();
+//			pan.setBounds(20, 200, 200, 400);
+//			JLabel label1 = new JLabel("参数1：");
+//			JTextField textField1 = new JTextField(16);
+//			JLabel label2 = new JLabel("参数2：");
+//			JTextField textField2 = new JTextField(16);
+//			JLabel label3 = new JLabel("参数3：");
+//			JTextField textField3 = new JTextField(16);
+//			JButton button = new JButton("确定");
+//			pan.add(label1);
+//			pan.add(textField1);
+//			pan.add(label2);
+//			pan.add(textField2);
+//			pan.add(label3);
+//			pan.add(textField3);
+//			pan.add(button);
+//
+//			JLayeredPane layeredPane = new JLayeredPane();
+//			layeredPane.add(pan,100);
+//			layeredPane.add(paneMap,10);
+//			
+//			this.setContentPane(layeredPane);
 			
 			//窗口事件
 			this.addWindowListener(new WindowListener(){
@@ -178,6 +212,157 @@ public class SenceView extends ApplicationTemplate{
 				}});
         }
 
+        /*****************************体*****************************/
+        protected void AddWedge(RenderableLayer layer){
+        	//属性
+            ShapeAttributes attrs = new BasicShapeAttributes();
+            attrs.setInteriorMaterial(Material.YELLOW);
+            attrs.setInteriorOpacity(0.7);
+            attrs.setEnableLighting(true);
+            attrs.setOutlineMaterial(Material.RED);
+            attrs.setOutlineWidth(2d);
+            attrs.setDrawInterior(true);
+            attrs.setDrawOutline(false);
+        	//几何体
+            Wedge wedge4 = new Wedge(Position.fromDegrees(31.2, 101, 50000), Angle.POS90, 50000, 70000, 50000);
+            wedge4.setAltitudeMode(WorldWind.RELATIVE_TO_GROUND);
+            wedge4.setAttributes(attrs);
+            wedge4.setVisible(true);
+            wedge4.setValue(AVKey.DISPLAY_NAME, "Wedge with equal axes, RELATIVE_TO_GROUND altitude mode");
+            layer.addRenderable(wedge4);
+        }
+        
+
+        /*****************************图层*****************************/
+        protected void AddWMSLayreNew(){
+        	try {
+        		//请求地图的URL
+                String uri = "http://localhost:8080/geoserver/mvtRoute/wms";
+                WMSCapabilities caps;
+                URI serverURI = new URI(uri);
+
+                //获得WMSCapabilities对象
+                caps = WMSCapabilities.retrieve(serverURI);
+                //解析WMSCapabilities数据
+                caps.parse();
+
+                AVList params = new AVListImpl();
+
+                //图层的名称
+                params.setValue(AVKey.LAYER_NAMES, "gis_osm_roads_free_1");
+                //地图服务的协议，这里是OGC:WMS
+                params.setValue(AVKey.SERVICE_NAME, "OGC:WMS");
+                //获得地图的uri，也就是上面定义的uri
+                params.setValue(AVKey.GET_MAP_URL, uri);
+                //在本地缓存文件的名称
+                params.setValue(AVKey.DATA_CACHE_NAME, "geoserver wms");
+                params.setValue(AVKey.TILE_URL_BUILDER, new WMSTiledImageLayer.URLBuilder(params));
+            	
+            	Object component = createComponent(caps,params);
+            	
+            	Layer layer = (Layer) component;
+                LayerList layers = getWwd().getModel().getLayers();
+
+                layer.setEnabled(true);
+
+                if (true)
+                {
+                    if (!layers.contains(layer))
+                    {
+                        ApplicationTemplate.insertBeforePlacenames(getWwd(), layer);
+                        this.firePropertyChange("LayersPanelUpdated", null, layer);
+                    }
+                }
+ 
+            } catch (URISyntaxException e) {
+                e.printStackTrace();
+            } catch (Exception e) {
+                e.printStackTrace();
+            }   
+        }
+        
+        protected static Object createComponent(WMSCapabilities caps, AVList params)
+        {
+            AVList configParams = params.copy(); // Copy to insulate changes from the caller.
+
+            // Some wms servers are slow, so increase the timeouts and limits used by world wind's retrievers.
+            configParams.setValue(AVKey.URL_CONNECT_TIMEOUT, 30000);
+            configParams.setValue(AVKey.URL_READ_TIMEOUT, 30000);
+            configParams.setValue(AVKey.RETRIEVAL_QUEUE_STALE_REQUEST_LIMIT, 60000);
+
+            try
+            {
+                String factoryKey = getFactoryKeyForCapabilities(caps);
+                Factory factory = (Factory) WorldWind.createConfigurationComponent(factoryKey);
+                return factory.createFromConfigSource(caps, configParams);
+            }
+            catch (Exception e)
+            {
+                // Ignore the exception, and just return null.
+            }
+
+            return null;
+        }
+        
+        protected static String getFactoryKeyForCapabilities(WMSCapabilities caps)
+        {
+            boolean hasApplicationBilFormat = false;
+
+            Set<String> formats = caps.getImageFormats();
+            for (String s : formats)
+            {
+                if (s.contains("application/bil"))
+                {
+                    hasApplicationBilFormat = true;
+                    break;
+                }
+            }
+
+            return hasApplicationBilFormat ? AVKey.ELEVATION_MODEL_FACTORY : AVKey.LAYER_FACTORY;
+        }
+        
+        protected void AddWMSLayre(){
+        	try {
+                //请求地图的URL
+                String uri = "http://localhost:8080/geoserver/mvtRoute/wms/gis_osm_roads_free_1";
+                WMSCapabilities caps;
+                URI serverURI = new URI(uri);
+ 
+                //获得WMSCapabilities对象
+                caps = WMSCapabilities.retrieve(serverURI);
+                //解析WMSCapabilities数据
+                caps.parse();
+ 
+                AVList params = new AVListImpl();
+ 
+                //图层的名称
+                params.setValue(AVKey.LAYER_NAMES, "planet_osm_line");
+                //地图服务的协议，这里是OGC:WMS
+                params.setValue(AVKey.SERVICE_NAME, "OGC:WMS");
+                //获得地图的uri，也就是上面定义的uri
+                params.setValue(AVKey.GET_MAP_URL, uri);
+                //在本地缓存文件的名称
+                params.setValue(AVKey.DATA_CACHE_NAME, "planet_osm_line");
+                params.setValue(AVKey.TILE_URL_BUILDER, new WMSTiledImageLayer.URLBuilder(params));
+ 
+                WMSTiledImageLayer imageLayer = new WMSTiledImageLayer(caps,params);
+                //图层名称
+                imageLayer.setName("planet_osm_line");
+                imageLayer.setEnabled(true);
+                //图层的透明度
+                imageLayer.setOpacity(1);
+                //图层的最大显示高度
+                imageLayer.setMaxActiveAltitude(33500000);
+                getWwd().getModel().getLayers().add(imageLayer);
+                getLayerPanel().update(getWwd());
+ 
+            } catch (URISyntaxException e) {
+                e.printStackTrace();
+            } catch (Exception e) {
+                e.printStackTrace();
+            }       	
+        }
+        
         /*****************************影像*****************************/
         protected void installImagery()
         {

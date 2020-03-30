@@ -1,16 +1,16 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <classpath>
 	<classpathentry kind="src" path="src"/>
-	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
-	<classpathentry kind="lib" path="E:/Work/WordWind/ww/libs/gdal.jar"/>
-	<classpathentry kind="lib" path="E:/Work/WordWind/ww/libs/gluegen-rt.jar"/>
-	<classpathentry kind="lib" path="E:/Work/WordWind/ww/libs/gluegen-rt-natives-windows-amd64.jar"/>
-	<classpathentry kind="lib" path="E:/Work/WordWind/ww/libs/gluegen-rt-natives-windows-i586.jar"/>
-	<classpathentry kind="lib" path="E:/Work/WordWind/ww/libs/jogl-all.jar"/>
-	<classpathentry kind="lib" path="E:/Work/WordWind/ww/libs/jogl-all-natives-windows-amd64.jar"/>
-	<classpathentry kind="lib" path="E:/Work/WordWind/ww/libs/jogl-all-natives-windows-i586.jar"/>
-	<classpathentry kind="lib" path="E:/Work/WordWind/ww/libs/vpf-symbols.jar"/>
-	<classpathentry kind="lib" path="E:/Work/WordWind/ww/libs/worldwind.jar"/>
-	<classpathentry kind="lib" path="E:/Work/WordWind/ww/libs/worldwindx.jar"/>
+	<classpathentry exported="true" kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
+	<classpathentry exported="true" kind="lib" path="libs/gdal.jar"/>
+	<classpathentry exported="true" kind="lib" path="libs/gluegen-rt-natives-windows-amd64.jar"/>
+	<classpathentry exported="true" kind="lib" path="libs/gluegen-rt-natives-windows-i586.jar"/>
+	<classpathentry exported="true" kind="lib" path="libs/gluegen-rt.jar"/>
+	<classpathentry exported="true" kind="lib" path="libs/jogl-all-natives-windows-amd64.jar"/>
+	<classpathentry exported="true" kind="lib" path="libs/jogl-all-natives-windows-i586.jar"/>
+	<classpathentry exported="true" kind="lib" path="libs/jogl-all.jar"/>
+	<classpathentry exported="true" kind="lib" path="libs/vpf-symbols.jar"/>
+	<classpathentry exported="true" kind="lib" path="libs/worldwind.jar"/>
+	<classpathentry exported="true" kind="lib" path="libs/worldwindx.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>

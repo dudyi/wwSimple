@@ -14,13 +14,16 @@ import gov.nasa.worldwind.geom.Position;
 import gov.nasa.worldwind.geom.Sector;
 import gov.nasa.worldwind.globes.ElevationModel;
 import gov.nasa.worldwind.layers.CompassLayer;
+import gov.nasa.worldwind.layers.IconLayer;
 import gov.nasa.worldwind.layers.Layer;
 import gov.nasa.worldwind.layers.LayerList;
 import gov.nasa.worldwind.layers.RenderableLayer;
 import gov.nasa.worldwind.ogc.wms.WMSCapabilities;
 import gov.nasa.worldwind.render.BasicShapeAttributes;
 import gov.nasa.worldwind.render.Material;
+import gov.nasa.worldwind.render.PatternFactory;
 import gov.nasa.worldwind.render.ShapeAttributes;
+import gov.nasa.worldwind.render.UserFacingIcon;
 import gov.nasa.worldwind.render.Wedge;
 import gov.nasa.worldwind.render.markers.BasicMarkerAttributes;
 import gov.nasa.worldwind.render.markers.BasicMarkerShape;
@@ -35,26 +38,41 @@ import gov.nasa.worldwindx.examples.dataimport.InstallElevations.AppFrame;
 import gov.nasa.worldwindx.examples.util.ExampleUtil;
 
 import java.awt.BorderLayout;
+import java.awt.Color;
 import java.awt.Component;
 import java.awt.Cursor;
 import java.awt.Dimension;
 import java.awt.Frame;
+import java.awt.GridLayout;
 import java.awt.Toolkit;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.ItemEvent;
+import java.awt.event.ItemListener;
 import java.awt.event.WindowEvent;
 import java.awt.event.WindowListener;
 import java.awt.event.WindowStateListener;
+import java.awt.image.BufferedImage;
 import java.io.File;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.Set;
 
+import javax.swing.AbstractAction;
+import javax.swing.Action;
+import javax.swing.ButtonGroup;
 import javax.swing.JButton;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JLayeredPane;
 import javax.swing.JPanel;
+import javax.swing.JRadioButton;
 import javax.swing.JTextField;
 import javax.swing.SwingUtilities;
+import javax.swing.Timer;
+import javax.swing.border.CompoundBorder;
+import javax.swing.border.EmptyBorder;
+import javax.swing.border.TitledBorder;
 
 import org.w3c.dom.Document;
 
@@ -62,7 +80,8 @@ public class SenceView extends ApplicationTemplate{
     protected static final String BASE_CACHE_PATH = "Examples/";
     //protected static final String ELEVATIONS_PATH_IMAGERY = "./data/craterlake-imagery-30m.tif";
     //protected static final String ELEVATIONS_PATH_ELEVATIONS = "./data/craterlake-elev-16bit-30m.tif";
-    protected static final String ELEVATIONS_PATH_IMAGERY = "./data/our/gg.tif";
+    //protected static final String ELEVATIONS_PATH_IMAGERY = "./data/our/xuexiao.tif";
+    protected static final String ELEVATIONS_PATH_IMAGERY = "./data/our/leshantm432.tif";
     protected static final String ELEVATIONS_PATH_ELEVATIONS = "./data/our/DEM.tif";
 
     //初始化窗体
@@ -77,7 +96,7 @@ public class SenceView extends ApplicationTemplate{
             Thread t = new Thread(new Runnable() {
                 public void run() {
                 	//影像
-                	//installImagery();
+                	installImagery();
                 	//地形
                     //installElevations();
                     //加载完毕，恢复状态
@@ -100,7 +119,10 @@ public class SenceView extends ApplicationTemplate{
             AddWedge(layer);
             
             //新增WMS图层
-            AddWMSLayreNew();
+            //AddWMSLayre();
+            
+            //图标图层
+            AddIconLayer();
             
 //            //屏幕默认最大化
 //			this.setExtendedState(JFrame.MAXIMIZED_BOTH);
@@ -234,7 +256,7 @@ public class SenceView extends ApplicationTemplate{
         
 
         /*****************************图层*****************************/
-        protected void AddWMSLayreNew(){
+        protected void AddWMSLayre(){
         	try {
         		//请求地图的URL
                 String uri = "http://localhost:8080/geoserver/mvtRoute/wms";
@@ -319,48 +341,6 @@ public class SenceView extends ApplicationTemplate{
             }
 
             return hasApplicationBilFormat ? AVKey.ELEVATION_MODEL_FACTORY : AVKey.LAYER_FACTORY;
-        }
-        
-        protected void AddWMSLayre(){
-        	try {
-                //请求地图的URL
-                String uri = "http://localhost:8080/geoserver/mvtRoute/wms/gis_osm_roads_free_1";
-                WMSCapabilities caps;
-                URI serverURI = new URI(uri);
- 
-                //获得WMSCapabilities对象
-                caps = WMSCapabilities.retrieve(serverURI);
-                //解析WMSCapabilities数据
-                caps.parse();
- 
-                AVList params = new AVListImpl();
- 
-                //图层的名称
-                params.setValue(AVKey.LAYER_NAMES, "planet_osm_line");
-                //地图服务的协议，这里是OGC:WMS
-                params.setValue(AVKey.SERVICE_NAME, "OGC:WMS");
-                //获得地图的uri，也就是上面定义的uri
-                params.setValue(AVKey.GET_MAP_URL, uri);
-                //在本地缓存文件的名称
-                params.setValue(AVKey.DATA_CACHE_NAME, "planet_osm_line");
-                params.setValue(AVKey.TILE_URL_BUILDER, new WMSTiledImageLayer.URLBuilder(params));
- 
-                WMSTiledImageLayer imageLayer = new WMSTiledImageLayer(caps,params);
-                //图层名称
-                imageLayer.setName("planet_osm_line");
-                imageLayer.setEnabled(true);
-                //图层的透明度
-                imageLayer.setOpacity(1);
-                //图层的最大显示高度
-                imageLayer.setMaxActiveAltitude(33500000);
-                getWwd().getModel().getLayers().add(imageLayer);
-                getLayerPanel().update(getWwd());
- 
-            } catch (URISyntaxException e) {
-                e.printStackTrace();
-            } catch (Exception e) {
-                e.printStackTrace();
-            }       	
         }
         
         /*****************************影像*****************************/
@@ -474,6 +454,75 @@ public class SenceView extends ApplicationTemplate{
             //ElevationModel对象
             return (ElevationModel) BasicFactory.create(AVKey.ELEVATION_MODEL_FACTORY,
                 ((Document) o).getDocumentElement());
+        }
+    
+        /*****************************IconLayer*****************************/
+        private UserFacingIcon icon;
+        protected void AddIconLayer(){
+        	IconLayer layer = new IconLayer();
+        	icon = new UserFacingIcon("./data/pic/alarm.png", new Position(Angle.fromDegrees(38), Angle.fromDegrees(-116), 0));
+            icon.setSize(new Dimension(64, 64));
+            layer.addIcon(icon);
+            ApplicationTemplate.insertAfterPlacenames(this.getWwd(), layer);
+        	
+            BufferedImage circleRed = createBitmap(PatternFactory.PATTERN_CIRCLE, Color.RED);
+            //动画
+            (new PulsingAlarmAction("Pulsing Red Circle", circleRed, 100)).actionPerformed(null);
+
+        }
+        
+        private BufferedImage createBitmap(String pattern, Color color)
+        {
+            // Create bitmap with pattern
+            BufferedImage image = PatternFactory.createPattern(pattern, new Dimension(128, 128), 0.7f,
+                color, new Color(color.getRed(), color.getGreen(), color.getBlue(), 0));
+            // Blur a lot to get a fuzzy edge
+            image = PatternFactory.blur(image, 13);
+            image = PatternFactory.blur(image, 13);
+            image = PatternFactory.blur(image, 13);
+            image = PatternFactory.blur(image, 13);
+            return image;
+        }
+        
+        private class PulsingAlarmAction extends AbstractAction
+        {
+            protected final Object bgIconPath;
+            protected int frequency;
+            protected int scaleIndex = 0;
+            protected double[] scales = new double[] {1.25, 1.5, 1.75, 2, 2.25, 2.5, 2.75, 3, 3.25, 3.5, 3.25, 3,
+                2.75, 2.5, 2.25, 2, 1.75, 1.5};
+            protected Timer timer;
+
+            private PulsingAlarmAction(String name, Object bgp, int frequency)
+            {
+                super(name);
+                this.bgIconPath = bgp;
+                this.frequency = frequency;
+            }
+
+            private PulsingAlarmAction(String name, Object bgp, int frequency, double[] scales)
+            {
+                this(name, bgp, frequency);
+                this.scales = scales;
+            }
+
+            public void actionPerformed(ActionEvent e)
+            {
+                if (timer == null)
+                {
+                    timer = new Timer(frequency, new ActionListener()
+                    {
+                        public void actionPerformed(ActionEvent e)
+                        {
+                            icon.setBackgroundScale(scales[++scaleIndex % scales.length]);
+                            getWwd().redraw();
+                        }
+                    });
+                }
+                icon.setBackgroundImage(bgIconPath);
+                scaleIndex = 0;
+                timer.start();
+            }
         }
     }
 

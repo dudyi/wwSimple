@@ -7,6 +7,7 @@ import gov.nasa.worldwind.avlist.AVKey;
 import gov.nasa.worldwind.avlist.AVList;
 import gov.nasa.worldwind.avlist.AVListImpl;
 import gov.nasa.worldwind.cache.FileStore;
+import gov.nasa.worldwind.awt.WorldWindowGLCanvas;
 import gov.nasa.worldwind.data.TiledElevationProducer;
 import gov.nasa.worldwind.data.TiledImageProducer;
 import gov.nasa.worldwind.geom.Angle;
@@ -53,6 +54,7 @@ import java.awt.event.WindowEvent;
 import java.awt.event.WindowListener;
 import java.awt.event.WindowStateListener;
 import java.awt.image.BufferedImage;
+import gov.nasa.worldwind.awt.WorldWindowGLCanvas;
 import java.io.File;
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -78,12 +80,12 @@ import org.w3c.dom.Document;
 
 public class SenceView extends ApplicationTemplate{
     protected static final String BASE_CACHE_PATH = "Examples/";
-    //protected static final String ELEVATIONS_PATH_IMAGERY = "./data/craterlake-imagery-30m.tif";
-    //protected static final String ELEVATIONS_PATH_ELEVATIONS = "./data/craterlake-elev-16bit-30m.tif";
-    //protected static final String ELEVATIONS_PATH_IMAGERY = "./data/our/xuexiao.tif";
-    protected static final String ELEVATIONS_PATH_IMAGERY = "./data/our/leshantm432.tif";
-    protected static final String ELEVATIONS_PATH_ELEVATIONS = "./data/our/DEM.tif";
+    protected static final String ELEVATIONS_PATH_IMAGERY = "./data/craterlake-imagery-30m.tif";
+    protected static final String ELEVATIONS_PATH_ELEVATIONS = "./data/craterlake-elev-16bit-30m.tif";
 
+    //«–∆¨ª∫¥Êµÿ÷∑
+    protected static final String USER_TITLECACHE_PATH = "E:\\Work\\WordWind\\wwSimple\\src\\data\\TitleCacheData";
+    
     //≥ı ºªØ¥∞ÃÂ
     public static class AppFrame extends ApplicationTemplate.AppFrame
     {
@@ -96,7 +98,7 @@ public class SenceView extends ApplicationTemplate{
             Thread t = new Thread(new Runnable() {
                 public void run() {
                 	//”∞œÒ
-                	installImagery();
+                	//installImagery();
                 	//µÿ–Œ
                     //installElevations();
                     //º”‘ÿÕÍ±œ£¨ª÷∏¥◊¥Ã¨
@@ -117,6 +119,9 @@ public class SenceView extends ApplicationTemplate{
             layers.add(compassPosition, layer);
             //ÃÌº”ÃÂ
             AddWedge(layer);
+            
+            //ª∫¥Ê«–∆¨Õº≤„
+            AddImageryCacheLayer();
             
             //–¬‘ˆWMSÕº≤„
             //AddWMSLayre();
@@ -254,8 +259,14 @@ public class SenceView extends ApplicationTemplate{
             layer.addRenderable(wedge4);
         }
         
+        /*****************************«–∆¨ª∫¥ÊÕº≤„*****************************/
+        protected void AddImageryCacheLayer(){
+        	// º”‘ÿª∫¥Ê ˝æ›
+			LoadCacheData loadCacheData = new LoadCacheData((WorldWindowGLCanvas)getWwd(),USER_TITLECACHE_PATH);
+			loadCacheData.loadPreviouslyInstalledData();
+        }
 
-        /*****************************Õº≤„*****************************/
+        /*****************************WMSÕº≤„*****************************/
         protected void AddWMSLayre(){
         	try {
         		//«Î«ÛµÿÕºµƒURL
@@ -460,8 +471,8 @@ public class SenceView extends ApplicationTemplate{
         private UserFacingIcon icon;
         protected void AddIconLayer(){
         	IconLayer layer = new IconLayer();
-        	icon = new UserFacingIcon("./data/pic/alarm.png", new Position(Angle.fromDegrees(38), Angle.fromDegrees(-116), 0));
-            icon.setSize(new Dimension(64, 64));
+        	icon = new UserFacingIcon("./data/pic/alarm.png", new Position(Angle.fromDegrees(30.19), Angle.fromDegrees(104.05), 100));
+            icon.setSize(new Dimension(16, 16));
             layer.addIcon(icon);
             ApplicationTemplate.insertAfterPlacenames(this.getWwd(), layer);
         	

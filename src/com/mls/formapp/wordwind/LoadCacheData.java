@@ -31,7 +31,6 @@ import gov.nasa.worldwindx.examples.util.ExampleUtil;
 public class LoadCacheData {
 	private static WorldWindowGLCanvas worldWindowGLCanvas;
 	private static String tileCachePath;
-	private static Sector sector;
  
 	//构造函数
 	public LoadCacheData(WorldWindowGLCanvas worWindowGLCanvas,String tileCachePath)
@@ -49,7 +48,11 @@ public class LoadCacheData {
 			public void run()
 			{
 				//新增缓存站点
-				WorldWind.getDataFileStore().addLocation(tileCachePath, true);
+				File file = new File(tileCachePath);
+				if(file.getParentFile().exists()) 
+					WorldWind.getDataFileStore().addLocation(tileCachePath, true);
+
+				//加载默认缓存站点
 				loadInstalledDataFromFileStore(WorldWind.getDataFileStore());
 			}
 		});

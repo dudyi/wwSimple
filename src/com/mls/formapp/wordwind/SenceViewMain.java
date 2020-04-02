@@ -3,6 +3,7 @@ package com.mls.formapp.wordwind;
 import java.awt.Cursor;
 import java.awt.event.ComponentAdapter;
 import java.awt.event.ComponentEvent;
+import java.awt.Frame;
 
 import javax.swing.JButton;
 import javax.swing.JLabel;
@@ -29,8 +30,9 @@ public class SenceViewMain extends ApplicationTemplate{
             Thread t = new Thread(new Runnable() {
                 public void run() {
                 	//初始化主视图
-                	InitMainView();
-                	//图层叠加
+                	InitMainView(getWwjPanel());
+                	
+                	/**************图层叠加**************/
                 	SenceLayerOperation sence = new SenceLayerOperation((WorldWindowGLCanvas)getWwd());
         	        //体图层
         	    	sence.AddWedgeLayer();
@@ -40,6 +42,8 @@ public class SenceViewMain extends ApplicationTemplate{
         	    	//sence.AddWMSLayre();	        
         	        //图标图层
         	    	sence.AddIconLayer();
+        	    	//线图层
+        	    	sence.AddEntityLayer();
                 	//文件影像
                 	//sence.installImagery();
                 	//文件地形
@@ -53,7 +57,35 @@ public class SenceViewMain extends ApplicationTemplate{
         }
         
         /********************************界面操作视图********************************/	
-        public void InitMainView() {
+        public void InitMainView(JPanel paneMap) {
+        	//菜单面板
+        	JPanel panMenu = CreateMenuPanel();
+			//分层浮动
+			JLayeredPane layeredPane = new JLayeredPane();
+			layeredPane.add(panMenu,100);
+			layeredPane.add(paneMap,10);
+			
+			this.setContentPane(layeredPane);
+		
+			//窗体大小改变
+			this.addComponentListener(new ComponentAdapter(){
+				@Override 
+				public void componentResized(ComponentEvent e){
+					//窗体
+					Frame fram = AppFrame.getFrames()[0];
+					//适应
+					paneMap.setBounds(0, 0, fram.getWidth(),fram.getHeight()-48);
+					paneMap.getCursor();
+					//重绘，不然有bug
+					fram.validate();
+					fram.repaint();
+				}
+			});
+        }
+        
+        //创建菜单面板
+        protected JPanel CreateMenuPanel() 
+        {
         	//控件
 			JPanel pan = new JPanel();
 			pan.setBounds(20, 200, 200, 400);
@@ -71,26 +103,8 @@ public class SenceViewMain extends ApplicationTemplate{
 			pan.add(label3);
 			pan.add(textField3);
 			pan.add(button);
-
-			//分层浮动
-			JLayeredPane layeredPane = new JLayeredPane();
-			layeredPane.add(pan,100);
-			JPanel paneMap = this.getWwjPanel();
-			layeredPane.add(paneMap,10);
 			
-			this.setContentPane(layeredPane);
-		
-			//窗体大小改变
-			this.addComponentListener(new ComponentAdapter(){
-				@Override 
-				public void componentResized(ComponentEvent e){
-					//获取窗体大小
-					int w = AppFrame.getFrames()[0].getWidth();
-					int h = AppFrame.getFrames()[0].getHeight();
-					//适应
-					paneMap.setBounds(0, 0, w,h);
-				}
-			});
+			return pan;
         }
     }
 

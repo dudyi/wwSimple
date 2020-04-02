@@ -8,6 +8,10 @@ import java.awt.image.BufferedImage;
 import java.io.File;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Iterator;
+import java.util.List;
 import java.util.Set;
 
 import javax.swing.AbstractAction;
@@ -27,6 +31,7 @@ import gov.nasa.worldwind.cache.FileStore;
 import gov.nasa.worldwind.data.TiledElevationProducer;
 import gov.nasa.worldwind.data.TiledImageProducer;
 import gov.nasa.worldwind.geom.Angle;
+import gov.nasa.worldwind.geom.LatLon;
 import gov.nasa.worldwind.geom.Position;
 import gov.nasa.worldwind.geom.Sector;
 import gov.nasa.worldwind.globes.ElevationModel;
@@ -34,14 +39,23 @@ import gov.nasa.worldwind.layers.CompassLayer;
 import gov.nasa.worldwind.layers.IconLayer;
 import gov.nasa.worldwind.layers.Layer;
 import gov.nasa.worldwind.layers.LayerList;
+import gov.nasa.worldwind.layers.MarkerLayer;
 import gov.nasa.worldwind.layers.RenderableLayer;
 import gov.nasa.worldwind.ogc.wms.WMSCapabilities;
 import gov.nasa.worldwind.render.BasicShapeAttributes;
+import gov.nasa.worldwind.render.Ellipsoid;
+import gov.nasa.worldwind.render.GlobeAnnotation;
 import gov.nasa.worldwind.render.Material;
 import gov.nasa.worldwind.render.PatternFactory;
 import gov.nasa.worldwind.render.ShapeAttributes;
+import gov.nasa.worldwind.render.SurfacePolyline;
+import gov.nasa.worldwind.render.SurfaceShape;
 import gov.nasa.worldwind.render.UserFacingIcon;
 import gov.nasa.worldwind.render.Wedge;
+import gov.nasa.worldwind.render.markers.BasicMarker;
+import gov.nasa.worldwind.render.markers.BasicMarkerAttributes;
+import gov.nasa.worldwind.render.markers.BasicMarkerShape;
+import gov.nasa.worldwind.render.markers.Marker;
 import gov.nasa.worldwind.terrain.CompoundElevationModel;
 import gov.nasa.worldwind.util.WWIO;
 import gov.nasa.worldwind.wms.WMSTiledImageLayer;
@@ -56,7 +70,7 @@ public class SenceLayerOperation {
     protected static final String ELEVATIONS_PATH_ELEVATIONS = "com/mls/formapp/data/craterlake-elev-16bit-30m.tif";
 
     //切片缓存地址
-    protected static final String USER_TITLECACHE_PATH = "E:\\Work\\WordWind\\wwSimple\\src\\data\\TitleCacheData";
+    protected static final String USER_TITLECACHE_PATH = "E:\\Work\\WordWind\\TitleCacheData";
 	
     private static WorldWindowGLCanvas worldWindowGLCanvas;
 	
@@ -314,11 +328,12 @@ public class SenceLayerOperation {
     	icon = new UserFacingIcon("com/mls/formapp/images/alarm.png", new Position(Angle.fromDegrees(30.19), Angle.fromDegrees(104.05), 100));
         icon.setSize(new Dimension(16, 16));
         layer.addIcon(icon);
+        
         ApplicationTemplate.insertAfterPlacenames(getWorldWindowGLCanvas(), layer);
     	
         BufferedImage circleRed = createBitmap(PatternFactory.PATTERN_CIRCLE, Color.RED);
         //动画
-        (new PulsingAlarmAction("Pulsing Red Circle", circleRed, 100)).actionPerformed(null);
+        (new PulsingAlarmAction("命中点", circleRed, 100)).actionPerformed(null);
 
     }
     
@@ -337,7 +352,8 @@ public class SenceLayerOperation {
     
     private class PulsingAlarmAction extends AbstractAction
     {
-        protected final Object bgIconPath;
+		private static final long serialVersionUID = 1L;
+		protected final Object bgIconPath;
         protected int frequency;
         protected int scaleIndex = 0;
         protected double[] scales = new double[] {1.25, 1.5, 1.75, 2, 2.25, 2.5, 2.75, 3, 3.25, 3.5, 3.25, 3,
@@ -376,6 +392,58 @@ public class SenceLayerOperation {
         }
     }
 	
+    /*****************************点线面图层*****************************/
+    protected void AddEntityLayer() 
+    {
+    	RenderableLayer layer = new RenderableLayer();
+    	//Polyline
+    	ShapeAttributes attrs = new BasicShapeAttributes();
+        attrs.setOutlineMaterial(Material.RED);
+        attrs.setOutlineWidth(3);
+        attrs.setOutlineStippleFactor(2);
+
+        Iterable<LatLon> locations = Arrays.asList(
+            LatLon.fromDegrees(31, 118),
+            LatLon.fromDegrees(32, 112),
+            LatLon.fromDegrees(36, 115));
+        SurfaceShape shape = new SurfacePolyline(locations);
+        shape.setAttributes(attrs);
+        ((SurfacePolyline) shape).setClosed(false);
+        layer.addRenderable(shape);
+        
+        //标签(乱码?)
+        GlobeAnnotation ga = new GlobeAnnotation("发射基地test", Position.fromDegrees(32, 110.9, 300));
+        ga.setAlwaysOnTop(true);
+        layer.addRenderable(ga);
+        
+        ApplicationTemplate.insertBeforeCompass(getWorldWindowGLCanvas(), layer);
+        
+        //轨迹点
+        List<Position> positions =  Arrays.asList(
+        		Position.fromDegrees(30, 120.9, 1000),
+        		Position.fromDegrees(30, 121.9, 2000),
+        		Position.fromDegrees(30, 122.9, 30000),
+        		Position.fromDegrees(30, 123.9, 40000),
+        		Position.fromDegrees(30, 124.9, 50000),
+        		Position.fromDegrees(30, 125.9, 60000),
+        		Position.fromDegrees(30, 126.9, 50000),
+        		Position.fromDegrees(30, 127.9, 40000),
+        		Position.fromDegrees(30, 128.9, 3000),
+        		Position.fromDegrees(30, 129.9, 2000),
+        		Position.fromDegrees(30, 130.9, 1000));        
+        BasicMarkerAttributes attrsB = new BasicMarkerAttributes(Material.RED, BasicMarkerShape.SPHERE, 1d);
+        ArrayList<Marker> markers = new ArrayList<Marker>();
+        for(Position p:positions) 
+        	markers.add(new BasicMarker(p, attrsB));
+
+        MarkerLayer layerB = new MarkerLayer(markers);
+        layerB.setOverrideMarkerElevation(false);
+        layerB.setElevation(0);
+        layerB.setEnablePickSizeReturn(true);
+
+        ApplicationTemplate.insertBeforeCompass(getWorldWindowGLCanvas(), layerB);
+    }
+    
 	//设置画布控件对象
 	public static void setWorldWindowGLCanvas(WorldWindowGLCanvas worldWindowGLCanvas)
 	{

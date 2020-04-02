@@ -1,4 +1,4 @@
-package wwSimple;
+package com.mls.formapp.wordwind;
 
 
 import java.awt.BorderLayout;
@@ -18,8 +18,6 @@ import javax.swing.JTextField;
 import javax.swing.SwingUtilities;
 
 import org.w3c.dom.Document;
-
-import wwSimple.SenceView.AppFrame;
 import gov.nasa.worldwind.BasicFactory;
 import gov.nasa.worldwind.BasicModel;
 import gov.nasa.worldwind.WorldWind;
@@ -43,8 +41,8 @@ import gov.nasa.worldwindx.examples.util.ExampleUtil;
 public class demo {
 	public static class WorldWindFrame extends JFrame {
 		protected static final String BASE_CACHE_PATH = "Examples/";
-		protected static final String ELEVATIONS_PATH_IMAGERY = "./data/craterlake-imagery-30m.tif";
-	    protected static final String ELEVATIONS_PATH_ELEVATIONS = "./data/craterlake-elev-16bit-30m.tif";
+		protected static final String ELEVATIONS_PATH_IMAGERY = "com/mls/formapp/data/craterlake-imagery-30m.tif";
+	    protected static final String ELEVATIONS_PATH_ELEVATIONS = "com/mls/formapp/data/craterlake-elev-16bit-30m.tif";
 		private static final long serialVersionUID = -130932605398355602L;
 		
 		private WorldWindowGLCanvas windowCanvas;

@@ -17,7 +17,9 @@ public class SenceViewMain extends ApplicationTemplate{
     //初始化窗体
     public static class AppFrame extends ApplicationTemplate.AppFrame
     {
-        public AppFrame()
+		private static final long serialVersionUID = -130932605398355602L;
+
+		public AppFrame()
         {
         	/********************************三维视图********************************/
         	//三维视图初始化

@@ -415,7 +415,7 @@ public class SenceLayerOperation {
         //标签(乱码?)
         GlobeAnnotation ga = new GlobeAnnotation("发射基地test", Position.fromDegrees(32, 110.9, 300));
         ga.setAlwaysOnTop(true);
-        ga.getAttributes().setFont(Font.decode("UTF-8"));
+        //ga.getAttributes().setFont(Font.decode("UTF-8"));
 
         layer.addRenderable(ga);
         

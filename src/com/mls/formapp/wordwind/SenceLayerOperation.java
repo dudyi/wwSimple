@@ -2,6 +2,7 @@ package com.mls.formapp.wordwind;
 
 import java.awt.Color;
 import java.awt.Dimension;
+import java.awt.Font;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.image.BufferedImage;
@@ -414,6 +415,8 @@ public class SenceLayerOperation {
         //标签(乱码?)
         GlobeAnnotation ga = new GlobeAnnotation("发射基地test", Position.fromDegrees(32, 110.9, 300));
         ga.setAlwaysOnTop(true);
+        ga.getAttributes().setFont(Font.decode("UTF-8"));
+
         layer.addRenderable(ga);
         
         ApplicationTemplate.insertBeforeCompass(getWorldWindowGLCanvas(), layer);

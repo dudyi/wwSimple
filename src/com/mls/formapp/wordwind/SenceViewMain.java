@@ -3,6 +3,8 @@ package com.mls.formapp.wordwind;
 import java.awt.Cursor;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.awt.event.ComponentAdapter;
 import java.awt.event.ComponentEvent;
 import java.awt.Frame;
@@ -25,7 +27,8 @@ public class SenceViewMain extends ApplicationTemplate{
     public static class AppFrame extends ApplicationTemplate.AppFrame
     {
 		private static final long serialVersionUID = -130932605398355602L;
-
+		SenceLayerOperation sence=null;
+		
 		public AppFrame()
         {
         	/********************************三维视图********************************/
@@ -40,17 +43,17 @@ public class SenceViewMain extends ApplicationTemplate{
                 	InitMainView(getWwjPanel());
                 	
                 	/**************图层叠加**************/
-                	SenceLayerOperation sence = new SenceLayerOperation((WorldWindowGLCanvas)getWwd());
+                	sence = new SenceLayerOperation((WorldWindowGLCanvas)getWwd());
         	        //体图层
-        	    	sence.AddWedgeLayer();
+        	    	//sence.AddWedgeLayer();
         	        //缓存切片图层
         	    	sence.AddImageryCacheLayer();
         	        //新增WMS图层
         	    	//sence.AddWMSLayre();	        
         	        //图标图层
-        	    	sence.AddIconLayer();
+        	    	//sence.AddIconLayer();
         	    	//线图层
-        	    	sence.AddEntityLayer();
+        	    	//sence.AddEntityLayer();
                 	//文件影像
                 	//sence.installImagery();
                 	//文件地形
@@ -158,9 +161,25 @@ public class SenceViewMain extends ApplicationTemplate{
 			JButton button1 = new JButton("解算");
 			button1.setBounds(340/2-80,rec.y,60,rec.height);
 			button1.setContentAreaFilled(false);
+			button1.addActionListener(new ActionListener() {
+                public void actionPerformed(ActionEvent e) {
+                	sence.AddEntityLayer();
+                	sence.AddMarkersLayer();
+                }
+            });
 			JButton button2 = new JButton("回放");
 			button2.setBounds(340/2+20,rec.y,60,rec.height);
 			button2.setContentAreaFilled(false);
+			button2.addActionListener(new ActionListener() {
+                public void actionPerformed(ActionEvent e) {
+//                	sence.RemoveEntityLayer();
+//                	sence.RemoveMarkersLayer();
+//                	//重绘
+//                	SenceLayerOperation.getWorldWindowGLCanvas().redraw();
+                	
+                	sence.TruckHistoryRoute();
+                }
+            });
 			
 			pan.add(label1);
 			pan.add(textField1);

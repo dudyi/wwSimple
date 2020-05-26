@@ -47,6 +47,7 @@ import gov.nasa.worldwind.render.BasicShapeAttributes;
 import gov.nasa.worldwind.render.Ellipsoid;
 import gov.nasa.worldwind.render.GlobeAnnotation;
 import gov.nasa.worldwind.render.Material;
+import gov.nasa.worldwind.render.Path;
 import gov.nasa.worldwind.render.PatternFactory;
 import gov.nasa.worldwind.render.ShapeAttributes;
 import gov.nasa.worldwind.render.SurfacePolyline;
@@ -62,6 +63,7 @@ import gov.nasa.worldwind.util.WWIO;
 import gov.nasa.worldwind.wms.WMSTiledImageLayer;
 import gov.nasa.worldwindx.examples.ApplicationTemplate;
 import gov.nasa.worldwindx.examples.dataimport.DataInstallUtil;
+import gov.nasa.worldwindx.examples.util.DirectedPath;
 import gov.nasa.worldwindx.examples.util.ExampleUtil;
 
 public class SenceLayerOperation {
@@ -70,6 +72,10 @@ public class SenceLayerOperation {
     protected static final String ELEVATIONS_PATH_IMAGERY = "com/mls/formapp/data/craterlake-imagery-30m.tif";
     protected static final String ELEVATIONS_PATH_ELEVATIONS = "com/mls/formapp/data/craterlake-elev-16bit-30m.tif";
 
+    //承载图层
+    RenderableLayer entityLayer=null;
+    MarkerLayer markerLayer = null;
+    
     //切片缓存地址
     protected static final String USER_TITLECACHE_PATH = "E:\\Work\\WordWind\\TitleCacheData";
 	
@@ -394,14 +400,20 @@ public class SenceLayerOperation {
     }
 	
     /*****************************点线面图层*****************************/
+    protected void RemoveEntityLayer() {
+    	if(entityLayer != null) 
+    		entityLayer.removeAllRenderables();
+    }
+    
     protected void AddEntityLayer() 
     {
-    	RenderableLayer layer = new RenderableLayer();
+    	if(entityLayer == null) entityLayer = new RenderableLayer();
+    	else entityLayer.removeAllRenderables();
     	//Polyline
     	ShapeAttributes attrs = new BasicShapeAttributes();
         attrs.setOutlineMaterial(Material.RED);
         attrs.setOutlineWidth(3);
-        attrs.setOutlineStippleFactor(2);
+        //attrs.setOutlineStippleFactor(2);
 
         Iterable<LatLon> locations = Arrays.asList(
             LatLon.fromDegrees(31, 118),
@@ -410,18 +422,52 @@ public class SenceLayerOperation {
         SurfaceShape shape = new SurfacePolyline(locations);
         shape.setAttributes(attrs);
         ((SurfacePolyline) shape).setClosed(false);
-        layer.addRenderable(shape);
+        entityLayer.addRenderable(shape);
         
         //标签(乱码?)
         GlobeAnnotation ga = new GlobeAnnotation("发射基地test", Position.fromDegrees(32, 110.9, 300));
         ga.setAlwaysOnTop(true);
-        //ga.getAttributes().setFont(Font.decode("UTF-8"));
-
-        layer.addRenderable(ga);
+        ga.getAttributes().setFont(Font.decode("UTF-8"));
+        entityLayer.addRenderable(ga);
         
-        ApplicationTemplate.insertBeforeCompass(getWorldWindowGLCanvas(), layer);
+        //高度线
+        ShapeAttributes attrsPath = new BasicShapeAttributes();
+        attrsPath.setOutlineMaterial(Material.YELLOW);
+        attrsPath.setOutlineWidth(2d);
         
-        //轨迹点
+        List<Position> positionsPath =  Arrays.asList(
+        		Position.fromDegrees(30, 120.9, 1000),
+        		Position.fromDegrees(30, 121.9, 2000),
+        		Position.fromDegrees(30, 122.9, 30000),
+        		Position.fromDegrees(30, 123.9, 40000),
+        		Position.fromDegrees(30, 124.9, 50000),
+        		Position.fromDegrees(30, 125.9, 60000),
+        		Position.fromDegrees(30, 126.9, 50000),
+        		Position.fromDegrees(30, 127.9, 40000),
+        		Position.fromDegrees(30, 128.9, 3000),
+        		Position.fromDegrees(30, 129.9, 2000),
+        		Position.fromDegrees(30, 130.9, 1000)); 
+        //Path path = new DirectedPath(positionsPath);
+        Path path = new Path(positionsPath);
+        
+        path.setAttributes(attrsPath);
+        //path.setAltitudeMode(WorldWind.RELATIVE_TO_GROUND);
+        //path.setPathType(AVKey.GREAT_CIRCLE);
+        entityLayer.addRenderable(path);
+               
+        ApplicationTemplate.insertBeforeCompass(getWorldWindowGLCanvas(), entityLayer); 
+    }
+    
+    
+    protected void RemoveMarkersLayer() {
+    	if(markerLayer != null) 
+    		markerLayer.setMarkers(null);
+    }
+    
+    protected void AddMarkersLayer() {
+    	if(markerLayer == null) markerLayer = new MarkerLayer();
+    	else markerLayer.setMarkers(null);
+    	//轨迹点
         List<Position> positions =  Arrays.asList(
         		Position.fromDegrees(30, 120.9, 1000),
         		Position.fromDegrees(30, 121.9, 2000),
@@ -434,17 +480,26 @@ public class SenceLayerOperation {
         		Position.fromDegrees(30, 128.9, 3000),
         		Position.fromDegrees(30, 129.9, 2000),
         		Position.fromDegrees(30, 130.9, 1000));        
-        BasicMarkerAttributes attrsB = new BasicMarkerAttributes(Material.RED, BasicMarkerShape.SPHERE, 1d);
+        BasicMarkerAttributes attrs = new BasicMarkerAttributes(Material.RED, BasicMarkerShape.SPHERE, 0.5);
         ArrayList<Marker> markers = new ArrayList<Marker>();
         for(Position p:positions) 
-        	markers.add(new BasicMarker(p, attrsB));
+        	markers.add(new BasicMarker(p, attrs));
 
-        MarkerLayer layerB = new MarkerLayer(markers);
-        layerB.setOverrideMarkerElevation(false);
-        layerB.setElevation(0);
-        layerB.setEnablePickSizeReturn(true);
+        //markerLayer = new MarkerLayer(markers);
+        markerLayer.setMarkers(markers);
+        markerLayer.setOverrideMarkerElevation(false);
+        markerLayer.setElevation(0);
+        markerLayer.setEnablePickSizeReturn(true);
 
-        ApplicationTemplate.insertBeforeCompass(getWorldWindowGLCanvas(), layerB);
+        ApplicationTemplate.insertBeforeCompass(getWorldWindowGLCanvas(), markerLayer);
+    }
+    
+    public void TruckHistoryRoute() {
+    	//获取点集
+    	
+    	//构造对象
+    	
+    	//动态绘制
     }
     
 	//设置画布控件对象

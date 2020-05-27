@@ -177,7 +177,7 @@ public class SenceViewMain extends ApplicationTemplate{
 //                	//ÖØ»æ
 //                	SenceLayerOperation.getWorldWindowGLCanvas().redraw();
                 	
-                	sence.TruckHistoryRoute();
+                	sence.HistoryTrack();
                 }
             });
 			

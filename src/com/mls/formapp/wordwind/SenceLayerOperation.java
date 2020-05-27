@@ -125,6 +125,11 @@ public class SenceLayerOperation {
     	// 加载缓存数据
 		LoadCacheData loadCacheData = new LoadCacheData(getWorldWindowGLCanvas(),USER_TITLECACHE_PATH);
 		loadCacheData.loadPreviouslyInstalledData();
+		
+		//缩放至(32.44829108,118.08144093)(32.46786118,118.12199625)
+        Sector sector = Sector.fromDegrees(32.44829108, 32.46786118, 118.08144093, 118.12199625);
+        ExampleUtil.goTo(getWorldWindowGLCanvas(), sector);
+        
     }
 
     /*****************************WMS图层*****************************/
@@ -435,29 +440,45 @@ public class SenceLayerOperation {
         attrsPath.setOutlineMaterial(Material.YELLOW);
         attrsPath.setOutlineWidth(2d);
         
-        List<Position> positionsPath =  Arrays.asList(
-        		Position.fromDegrees(30, 120.9, 1000),
-        		Position.fromDegrees(30, 121.9, 2000),
-        		Position.fromDegrees(30, 122.9, 30000),
-        		Position.fromDegrees(30, 123.9, 40000),
-        		Position.fromDegrees(30, 124.9, 50000),
-        		Position.fromDegrees(30, 125.9, 60000),
-        		Position.fromDegrees(30, 126.9, 50000),
-        		Position.fromDegrees(30, 127.9, 40000),
-        		Position.fromDegrees(30, 128.9, 3000),
-        		Position.fromDegrees(30, 129.9, 2000),
-        		Position.fromDegrees(30, 130.9, 1000)); 
-        //Path path = new DirectedPath(positionsPath);
-        Path path = new Path(positionsPath);
-        
+        ArrayList<Position> pathPositions = new ArrayList<Position>();
+        for(int i=0;i<100000;i++) {
+        	if(i<=50000) pathPositions.add(Position.fromDegrees(32.45, 118.09+i*0.0000001, i/100));
+        	else pathPositions.add(Position.fromDegrees(32.45, 118.09+i*0.0000001, (100000-i)/100));
+        }
+         
+        Path path = new Path(pathPositions);
         path.setAttributes(attrsPath);
-        //path.setAltitudeMode(WorldWind.RELATIVE_TO_GROUND);
-        //path.setPathType(AVKey.GREAT_CIRCLE);
         entityLayer.addRenderable(path);
                
         ApplicationTemplate.insertBeforeCompass(getWorldWindowGLCanvas(), entityLayer); 
     }
     
+    //动态轨迹
+    protected void HistoryTrack() {
+    	ArrayList<Position> pathPositions = new ArrayList<Position>();
+        for(int i=0;i<100000;i++) {
+        	if(i<=50000) pathPositions.add(Position.fromDegrees(32.45, 118.09+i*0.0000001, i/100));
+        	else pathPositions.add(Position.fromDegrees(32.45, 118.09+i*0.0000001, (100000-i)/100));
+        }
+        
+        //体对象
+        MarkerLayer mLayer = new MarkerLayer();
+        ArrayList<Marker> markers = new ArrayList<Marker>();
+        BasicMarkerAttributes attrs = new BasicMarkerAttributes(Material.RED, BasicMarkerShape.SPHERE, 0.5);
+        BasicMarker marker= new BasicMarker(pathPositions.get(50000), attrs);
+        markers.add(marker);
+        mLayer.setMarkers(markers);
+        mLayer.setOverrideMarkerElevation(false);
+        mLayer.setElevation(0);
+        mLayer.setEnablePickSizeReturn(true);
+
+        ApplicationTemplate.insertBeforeCompass(getWorldWindowGLCanvas(), mLayer);
+        
+        //子线程
+        RunnerHistoryTrack r1 = new RunnerHistoryTrack(marker,pathPositions,getWorldWindowGLCanvas());		
+		Thread t = new Thread(r1);		
+		t.start();
+    }
     
     protected void RemoveMarkersLayer() {
     	if(markerLayer != null) 
@@ -492,14 +513,7 @@ public class SenceLayerOperation {
         markerLayer.setEnablePickSizeReturn(true);
 
         ApplicationTemplate.insertBeforeCompass(getWorldWindowGLCanvas(), markerLayer);
-    }
-    
-    public void TruckHistoryRoute() {
-    	//获取点集
-    	
-    	//构造对象
-    	
-    	//动态绘制
+
     }
     
 	//设置画布控件对象
@@ -514,4 +528,29 @@ public class SenceLayerOperation {
 		return worldWindowGLCanvas;
 	}
 	 
+}
+
+class RunnerHistoryTrack implements Runnable{
+	private BasicMarker marker;
+	private ArrayList<Position> pathPositions;
+	private WorldWindowGLCanvas canvas;
+	
+	public RunnerHistoryTrack(BasicMarker marker,ArrayList<Position> pathPositions,WorldWindowGLCanvas canvas) {
+		this.marker = marker;
+		this.pathPositions = pathPositions;
+		this.canvas = canvas;
+	}
+	@Override
+	public void run() {		
+        try {
+        	for(int i=0;i<pathPositions.size();i++) {
+        		marker.setPosition(pathPositions.get(i));
+            	Thread.sleep(100);
+            	canvas.redraw();
+            	System.out.println(marker.getPosition());
+            }
+		} catch (InterruptedException e) {
+			e.printStackTrace();
+		}
+	}	
 }

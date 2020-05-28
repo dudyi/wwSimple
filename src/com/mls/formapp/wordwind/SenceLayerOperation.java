@@ -545,7 +545,7 @@ class RunnerHistoryTrack implements Runnable{
         try {
         	for(int i=0;i<pathPositions.size();i++) {
         		marker.setPosition(pathPositions.get(i));
-            	Thread.sleep(100);
+            	Thread.sleep(1);
             	canvas.redraw();
             	System.out.println(marker.getPosition());
             }

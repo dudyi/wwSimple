@@ -22,6 +22,9 @@ import javax.swing.SwingConstants;
 import gov.nasa.worldwindx.examples.ApplicationTemplate;
 import gov.nasa.worldwind.awt.WorldWindowGLCanvas;
 
+import com.mathworks.toolbox.javabuilder.*;
+import Ceshi.Class1;
+
 public class SenceViewMain extends ApplicationTemplate{    
     //初始化窗体
     public static class AppFrame extends ApplicationTemplate.AppFrame
@@ -228,6 +231,19 @@ public class SenceViewMain extends ApplicationTemplate{
 
     public static void main(String[] args)
     {
+    	MatlabTest();
+    	
         ApplicationTemplate.start("模拟程序", SenceViewMain.AppFrame.class);
+    }
+    
+    public static void MatlabTest() {
+    	try {
+    		Class1 test = new Class1();// 实例化
+        	Object[] result = test.Ceshi(1,100);
+        	System.out.println(result);
+    	}
+    	catch (MWException e) {
+            e.printStackTrace();
+    	}
     }
 }

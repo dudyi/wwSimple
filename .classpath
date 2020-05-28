@@ -12,5 +12,7 @@
 	<classpathentry exported="true" kind="lib" path="libs/vpf-symbols.jar"/>
 	<classpathentry exported="true" kind="lib" path="libs/worldwind.jar"/>
 	<classpathentry exported="true" kind="lib" path="libs/worldwindx.jar"/>
+	<classpathentry kind="lib" path="F:/WordWind/wwSimple/libs/Ceshi.jar"/>
+	<classpathentry kind="lib" path="F:/WordWind/wwSimple/libs/javabuilder.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>
